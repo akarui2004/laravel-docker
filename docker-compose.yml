@@ -1,0 +1,40 @@
+version: '3.8'
+
+networks:
+  laravel:
+    driver: bridge
+
+services:
+  server:
+    image: "nginx:1.21.6-alpine"
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/code/Example
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel
+    depends_on:
+      - php-fpm
+  php-fpm:
+    build:
+      context: ./
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./:/code/Example
+    networks:
+      - laravel
+    depends_on:
+      - postgres
+  postgres:
+    image: "postgres:latest"
+    ports:
+      - "5442:5432"
+    environment:
+      POSTGRES_DB: todos
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - ./docker/volumes/postgres:/var/lib/postgresql/data
